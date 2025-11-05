@@ -1,0 +1,298 @@
+---
+title: "IntroToRAnalysis"
+author: "HLI Bioinformatics Committee"
+output: html_document
+---
+
+## Intro to R
+
+This R Markdown file walks through some of the basics of R, like data types, simple functions, and how to work with your first bits of code. It’s meant to be a quick, beginner-friendly guide to help you get comfortable using R!
+
+### The basics
+
+R is a computer language made for working with data. It is used to organize information, perform calculations, and create visualizations. Think of it as a powerful calculator mixed with a toolbox for exploring and visualizing data.
+
+Below is an R codechunk. We can write R instructions for the computer to execute within these chunks. For the computer to actually run these commands, we can click the green arrow on the top right to run everything within the code chunk. Alternatively, we can press `CTRL + ENTER` on windows device or `CMD + RETURN` on a Mac device, to run specific lines of code within the chunk.
+
+```{r First CodeChunk}
+print("Hello World!")
+```
+
+In R, there are common data types that we work with:
+
+- Numeric: numbers (e.g., 3.14, 42)
+
+- Character: text or strings (e.g., "hello")
+
+- Logical: true/false values (e.g., TRUE, FALSE)
+
+- Factor: categories or labels (e.g., "male", "female")
+
+We can store data inside variables, which when run later, will output the value stored within it
+
+```{r data types}
+# Common data types in R
+
+# Numeric
+x <- 42
+pi_value <- 3.141592653
+
+# Character / string
+name <- "Alice"
+
+# Logical
+is_sunny <- TRUE
+is_raining <- FALSE
+
+# Factor
+colors <- factor(c("red", "blue", "red", "green"))
+
+# If I ever needed to use pi in my downstream application, I can just run the `pi_value` variable rather than type it all out again:
+pi_value
+```
+
+From above, we declared `colours` using the `c()` operator. This is known as a vector. A vector is a collection of values of the same data type. For example, you can have a vector of numbers, characters, or logical values. Vectors are one of the most important building blocks in R, since many larger structures (like data frames and matrices) are built from them.
+
+```{r vectors}
+# Vectors (collections of the same data type)
+num_vec <- c(1, 2, 3, 4, 5)       
+char_vec <- c("apple", "banana", "cherry") 
+log_vec <- c(TRUE, FALSE, TRUE)     
+
+# We can check the type of objects contained in a vector using the `class` function
+class(num_vec)   # "numeric"
+class(char_vec)  # "character"
+class(log_vec)   # "logical"
+class(colors)    # "factor"
+```
+
+In practice, most forms of data are tabular (like excel spreadsheets). We can create a similar data structure called a data frame. Each column within a data frame is a vector (usually of the same length) and can hold different data types. This makes data frames very useful for storing datasets: one column might hold numbers (like ages), another column might hold characters (like names), and another column might hold logical values (like TRUE/FALSE for yes/no). Data frames are one of the most common ways to work with data in R.
+
+```{r dataframe}
+# Vectors
+names <- c("Alice", "Bob", "Charlie")
+ages <- c(25, 30, 28)
+is_student <- c(TRUE, FALSE, TRUE)
+
+# Combine vectors into a data frame
+people <- data.frame(Name = names, Age = ages, Student = is_student)
+
+# Print data frame
+print(people)
+
+# Check the structure
+str(people)
+```
+
+
+## Insurance Dataset
+
+Now that we have a grasp of basic R data types, let's learn how to work with them. In the same directory as this RMarkdown file, we work with the `insurance.csv` dataset, which contains metadata information about a person and their insurance charges. Using this dataset, we'll work through some examples of how to explore this dataset using R. 
+
+Firstly, we'll have to read in our data. We can do this through the `read.csv` function:
+
+```{r Read Data}
+# load insurance.csv file into R
+data <- read.csv("insurance.csv")
+
+# check out first 5 rows of data
+head(data)
+```
+
+```{r Diagnostics}
+# get dimension of dataframe loaded
+# format of output is [rows , columns]
+dim(data)
+
+# we can get just the number rows or columns using nrow() and ncol()
+nrow(data)
+ncol(data)
+
+# get the names of the columns of the dataset
+colnames(data)
+```
+
+### How many unique regions are in the dataset?
+
+From the dataframe above, we see that we just need the `region` column to answer this question. We can isolate for this column using the `$` operator, and use the `unique` function
+
+```{r Number of Regions}
+# What does unique do? 
+?unique
+
+# Isolate for just the region column
+region <- data$region
+
+# Get just unique regions
+unique_region <- unique(region)
+
+# Count the number of unique regions
+length(unique_region)
+```
+
+There's a shorter way to get to the same answer without declaring as many variables:
+
+```{r Regions Short Answer}
+# We can read nested functions like this by reading from inside out
+# 1) Innermost operation (happens first): data$region
+# 2) Middle operation (happens second): unique(.)
+# 3) Outside operation (happens last): length(.)
+length(unique(data$region))
+```
+
+### What is the average age of participants?
+
+We can follow similar steps as the first question! 1) Isolate for variable we need 2) Add up the elements in this vector 3) Divide by the number of elements
+
+```{r Average Age}
+# Isolate for age column
+age <- data$age
+
+# add up all the ages
+# If you don't know what sum() does, we can always use ?
+# ?sum
+age_sum <- sum(data$age)
+
+# divide by the number of elements to get the average!
+age_sum / length(age)
+
+# built-in function that calculates the average directly
+# 1) data$age collects the age column from data
+# 2) mean(.) calculates the average of data$age!
+mean(data$age)
+```
+
+### Which sex has more participants in the dataset?
+
+```{r More Female?}
+# Check sex variable levels
+unique(data$sex)
+
+# We can check element-wise which entries are "female" or "male" using the `ifelse` operator
+?ifelse
+
+is_female <- ifelse(data$sex == "female", 1, 0)
+
+# We can take the average of the `is_female` variable to get our answer!
+# If the average of `is_female` > 0.5, then we know that there are more females than males in the dataset (and vice-versa)
+
+mean(is_female)
+```
+
+```{r Participant Count}
+# if we want the actual number of males and females, we can do the following:
+num_female <- sum(is_female)
+num_male <- nrow(data) - num_female
+
+num_female
+num_male
+```
+
+### What is the average BMI for smokers vs. non-smokers?
+
+So far, we've been using base R to answer our questions. But for this question, using code from the `tidyverse` function would help us streamline the answer!
+
+The `tidyverse` package contains a lot of helpful functions for data wrangling and processing. All the questions we've gone over today can be answered using functions from `tidyverse`.
+
+First, we need to install and load the library
+
+```{r Load Packages}
+if (!requireNamespace("tidyverse", quietly = TRUE)) {
+  install.packages("tidyverse")
+}
+library(tidyverse)
+```
+
+With `tidyverse` loaded into our environment, we're able to access all the functions and code provided by this package. One useful operator that can be found in this package is the pipe operator. It allows us to pass in an argument into a function as a chain.
+
+```{r Unique using Pipe Operator}
+# We can use the pipe operator (%>% or |>) to pass in arguments to a function
+data |> 
+  select(smoker) |>
+  unique()
+```
+
+Without the pipe operator, we can run into really long nested operations, which can be confusing to look at.
+
+```{r Unique no pipe}
+# long nested solution, but we've seen something similar above
+unique(select(data, smoker))
+```
+
+Using these tools, we can calculate the average BMI of smokers:
+
+```{r Smoker BMI}
+data |>
+  filter(smoker == "yes") |> # remove all rows where this is FALSE
+  select(bmi) |> # select only the bmi column within the data
+  pull() |> # extract just the values of bmi
+  mean() # calculate the mean
+```
+
+Repeating the same steps for non-smokers:
+
+```{r non-Smoker BMI}
+data |>
+  filter(smoker == "no") |> 
+  select(bmi) |> 
+  pull() |> 
+  mean() 
+```
+
+We can solve this problem more concisely using the `group_by` and `summarize` functions. In brief, `group_by` will group rows within your data together based on the different levels within a categorical variable, and `summarize` allows you to calculate summary statistics (like the mean) on each group!
+
+```{r BMI average short}
+data %>% 
+  group_by(smoker) %>%
+  summarize(ave_bmi = mean(bmi))
+```
+
+### How many children do people usually have?
+
+Try solving this using the tools we've learned!
+
+```{r EXCERCISE}
+mean(data$children)
+```
+
+Plot bar plots showing the distribution of number of children people have in this dataset
+
+```{r}
+children_counts <- table(data$children)
+
+barplot(children_counts,
+        main = "Distribution of Number of Children",
+        xlab = "Number of Children",
+        ylab = "Number of People",
+        col = "skyblue")
+
+
+
+```
+
+###Extra exerises
+
+```{r}
+#Average charges by regions
+#For other variables, you can replace "region" and "charges" to the variable that you want
+data %>% 
+  group_by(region) %>%
+  summarize(mean_charge = mean(charges))
+
+#you can change this by other variables
+```
+
+
+```{r}
+#Plotting distribution people by regions
+#For other variables, you can replace "region" to the variable that you want
+region_counts <- table(data$region)
+
+barplot(region_counts,
+        main = "Distribution of Number of People per Region",
+        xlab = "Region",
+        ylab = "Number of People",
+        col = "skyblue")
+
+```
+
