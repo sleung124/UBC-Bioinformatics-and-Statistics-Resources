@@ -5,6 +5,7 @@ Github repository to store resources for Bioinformatics and Statistics workshops
 
 # Josh's Temporary Notes
 
+```r
 download.file(
   url = "https://raw.githubusercontent.com/sleung124/UBC-Bioinformatics-and-Statistics-Resources/refs/heads/main/CodeOrganization/bad-example/Untitled.R",
   dest = "Untitled.R",
@@ -16,3 +17,4 @@ download.file(
   dest = "insurance.csv",
   method = "auto"
 )
+```
